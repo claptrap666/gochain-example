@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log"
@@ -23,14 +24,17 @@ func main() {
 	go func() {
 		t := time.Now()
 		genesisBlock := Block{}
-		genesisBlock = Block{0, t.String(), "Bang", genesisBlock.calculateHash(), time.Now()}
+		genesisBlock = Block{0, t.String(), "Bang", genesisBlock.hash(), time.Now()}
 		spew.Dump(genesisBlock)
 
 		mutex.Lock()
 		Blockchain = append(Blockchain, genesisBlock)
 		mutex.Unlock()
 	}()
-	log.Fatal(run())
+
+	go log.Fatal(run())
+	go log.Fatal(p2prun())
+
 }
 
 // Blockchain the chain
@@ -57,6 +61,12 @@ func run() error {
 		return err
 	}
 	return nil
+}
+
+func p2prun() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	chost := ChainHost{}
+	return chost.Init(ctx, cancel)
 }
 
 // create handlers
@@ -92,7 +102,7 @@ func handleWriteBlock(w http.ResponseWriter, r *http.Request) {
 
 	mutex.Lock()
 	prevBlock := Blockchain[len(Blockchain)-1]
-	newBlock := prevBlock.generateBlock(msg.Data)
+	newBlock := prevBlock.generate(msg.Data)
 
 	if newBlock.isBlockValid(prevBlock) {
 		Blockchain = append(Blockchain, newBlock)

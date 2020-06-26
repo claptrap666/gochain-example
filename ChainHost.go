@@ -23,13 +23,14 @@ type ChainHost struct {
 }
 
 //Init : init a host
-func (BotHost *ChainHost) Init(ctx context.Context) {
+func (chainHost *ChainHost) Init(ctx context.Context, cancel context.CancelFunc) (err error) {
 	priv, _, err := crypto.GenerateKeyPair(
 		crypto.Ed25519, // Select your key type. Ed25519 are nice short
 		-1,             // Select key length when possible (i.e. RSA).
 	)
 	if err != nil {
-		panic(err)
+		cancel()
+		return err
 	}
 
 	var idht *dht.IpfsDHT
@@ -69,13 +70,14 @@ func (BotHost *ChainHost) Init(ctx context.Context) {
 		libp2p.EnableAutoRelay(),
 	)
 	if err != nil {
-		panic(err)
+		cancel()
+		return err
 	}
-	BotHost.Host = h2
+	chainHost.Host = h2
 	// If you want to help other peers to figure out if they are behind
 	// NATs, you can launch the server-side of AutoNAT too (AutoRelay
 	// already runs the client)
-	_, err = autonat.NewAutoNATService(ctx, BotHost,
+	_, err = autonat.NewAutoNATService(ctx, chainHost,
 		// Support same non default security and transport options as
 		// original host.
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
@@ -97,5 +99,6 @@ func (BotHost *ChainHost) Init(ctx context.Context) {
 			h2.Connect(ctx, *pi)
 		}
 	*/
-	fmt.Printf("Hello World, my BotHost ID is %s\n", BotHost.ID())
+	fmt.Printf("Hello World, my BotHost ID is %s\n", chainHost.ID())
+	return nil
 }

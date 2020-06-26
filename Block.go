@@ -26,7 +26,7 @@ func (block *Block) isBlockValid(oldBlock Block) bool {
 		return false
 	}
 
-	if block.calculateHash() != block.Hash {
+	if block.hash() != block.Hash {
 		return false
 	}
 
@@ -34,7 +34,7 @@ func (block *Block) isBlockValid(oldBlock Block) bool {
 }
 
 // SHA256 hasing
-func (block *Block) calculateHash() string {
+func (block *Block) hash() string {
 	record := strconv.Itoa(block.Index) + block.Timestamp.String() + block.Data + block.PrevHash
 	h := sha256.New()
 	h.Write([]byte(record))
@@ -43,7 +43,7 @@ func (block *Block) calculateHash() string {
 }
 
 // create a new block using previous block's hash
-func (block *Block) generateBlock(Data string) Block {
+func (block *Block) generate(Data string) Block {
 
 	var newBlock Block
 
@@ -53,6 +53,6 @@ func (block *Block) generateBlock(Data string) Block {
 	newBlock.Timestamp = t
 	newBlock.Data = Data
 	newBlock.PrevHash = block.Hash
-	newBlock.Hash = newBlock.calculateHash()
+	newBlock.Hash = newBlock.hash()
 	return newBlock
 }

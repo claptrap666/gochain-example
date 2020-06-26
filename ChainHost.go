@@ -10,6 +10,7 @@ import (
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
@@ -29,7 +30,6 @@ func (chainHost *ChainHost) Init(ctx context.Context, cancel context.CancelFunc)
 		-1,             // Select key length when possible (i.e. RSA).
 	)
 	if err != nil {
-		cancel()
 		return err
 	}
 
@@ -70,7 +70,6 @@ func (chainHost *ChainHost) Init(ctx context.Context, cancel context.CancelFunc)
 		libp2p.EnableAutoRelay(),
 	)
 	if err != nil {
-		cancel()
 		return err
 	}
 	chainHost.Host = h2
@@ -85,20 +84,19 @@ func (chainHost *ChainHost) Init(ctx context.Context, cancel context.CancelFunc)
 		libp2p.Transport(libp2pquic.NewTransport),
 		libp2p.DefaultTransports,
 	)
+	fmt.Printf("Hello World, my Host ID is %s\n", chainHost.ID())
+
 	// The last step to get fully up and running would be to connect to
 	// bootstrap peers (or any other peers). We leave this commented as
 	// this is an example and the peer will die as soon as it finishes, so
 	// it is unnecessary to put strain on the network.
 
-	/*
-		// This connects to public bootstrappers
-		for _, addr := range dht.DefaultBootstrapPeers {
-			pi, _ := peer.AddrInfoFromP2pAddr(addr)
-			// We ignore errors as some bootstrap peers may be down
-			// and that is fine.
-			h2.Connect(ctx, *pi)
-		}
-	*/
-	fmt.Printf("Hello World, my BotHost ID is %s\n", chainHost.ID())
+	// This connects to public bootstrappers
+	for _, addr := range dht.DefaultBootstrapPeers {
+		pi, _ := peer.AddrInfoFromP2pAddr(addr)
+		// We ignore errors as some bootstrap peers may be down
+		// and that is fine.
+		h2.Connect(ctx, *pi)
+	}
 	return nil
 }

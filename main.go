@@ -32,8 +32,13 @@ func main() {
 		mutex.Unlock()
 	}()
 
-	go log.Fatal(run())
-	go log.Fatal(p2prun())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	chost := ChainHost{}
+	log.Fatal(chost.Init(ctx, cancel))
+
+	// boot web server
+	log.Fatal(run())
 
 }
 
@@ -61,12 +66,6 @@ func run() error {
 		return err
 	}
 	return nil
-}
-
-func p2prun() error {
-	ctx, cancel := context.WithCancel(context.Background())
-	chost := ChainHost{}
-	return chost.Init(ctx, cancel)
 }
 
 // create handlers
